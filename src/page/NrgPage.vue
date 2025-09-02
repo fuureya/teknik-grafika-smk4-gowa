@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from "vue";
-import cardBg from "@/assets/card.png"; // background image
-import cardBg2 from "@/assets/card2.png"; // background image
+import cardBg from "@/assets/card.png"; // background depan
+import cardBg2 from "@/assets/card2.png"; // background belakang
+import html2canvas from "html2canvas"; // install: npm install html2canvas
 
 const form = ref({
     nrg: "",
@@ -14,12 +15,14 @@ const form = ref({
 });
 
 const photoUrl = ref(null);
+const cardFrontRef = ref(null); // untuk cetak depan
+const cardBackRef = ref(null); // untuk cetak belakang
 
 const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
         form.value.photo = file;
-        photoUrl.value = URL.createObjectURL(file); // ✅ generate preview URL
+        photoUrl.value = URL.createObjectURL(file);
     }
 };
 
@@ -33,7 +36,36 @@ const resetForm = () => {
         mapel: "",
         photo: null,
     };
-    photoUrl.value = null; // reset preview
+    photoUrl.value = null;
+};
+
+// 📸 Export as JPG
+const exportCard = async (refElement, filename) => {
+    if (!refElement.value) return;
+    const canvas = await html2canvas(refElement.value, {
+        useCORS: true,
+        backgroundColor: null,
+    });
+    const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+    const link = document.createElement("a");
+    link.href = imgData;
+    link.download = filename;
+    link.click();
+};
+
+const cetakDepan = () => {
+    exportCard(
+        cardFrontRef,
+        `kartu_nrg_depan_${form.value.nama || "user"}.jpg`
+    );
+};
+
+const cetakBelakang = () => {
+    exportCard(
+        cardBackRef,
+        `kartu_nrg_belakang_${form.value.nama || "user"}.jpg`
+    );
 };
 </script>
 
@@ -103,9 +135,11 @@ const resetForm = () => {
                 <h2 class="bg-blue-600 text-white px-4 py-2 rounded-t-lg -mx-6 -mt-6 mb-6 text-lg font-semibold">
                     Live Preview Kartu NRG
                 </h2>
+
                 <div class="space-y-4">
-                    <!-- Card with background -->
-                    <div class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
+                    <!-- Card Depan -->
+                    <div ref="cardFrontRef"
+                        class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
                         :style="{ backgroundImage: `url(${cardBg})` }">
                         <!-- Overlay -->
                         <div class="absolute inset-0 flex flex-col p-4 text-sm text-gray-900">
@@ -129,31 +163,25 @@ const resetForm = () => {
                             </div>
                         </div>
                     </div>
-
-
                 </div>
+
+                <!-- Card Belakang -->
                 <div class="space-y-4 mt-5">
-                    <!-- Card with background -->
-                    <div class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
-                        :style="{ backgroundImage: `url(${cardBg2})` }">
-                    </div>
+                    <div ref="cardBackRef"
+                        class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
+                        :style="{ backgroundImage: `url(${cardBg2})` }"></div>
 
                     <!-- Action Buttons -->
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 bg-green-600 text-white rounded">
-                            Whatsapp
+                        <button @click="cetakDepan" class="px-4 py-2 bg-green-600 text-white rounded">
+                            Cetak Depan
                         </button>
-                        <button class="px-4 py-2 bg-blue-600 text-white rounded">
-                            Siplah
-                        </button>
-                        <button class="px-4 py-2 bg-gray-800 text-white rounded">
-                            Cetak Kartu
+                        <button @click="cetakBelakang" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            Cetak Belakang
                         </button>
                     </div>
                 </div>
             </div>
-
-
         </div>
     </main>
 </template>
