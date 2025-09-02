@@ -43,12 +43,13 @@ const resetForm = () => {
     qrCodeUrl.value = null;
 };
 
-// 📦 Generate QR code dari data form
+// 📦 Generate QR code dari data form (selalu square)
 const generateQRCode = async () => {
     const qrData = JSON.stringify(form.value, null, 2);
     qrCodeUrl.value = await QRCode.toDataURL(qrData, {
-        width: 200,
+        width: 300,   // fix square 300x300
         margin: 2,
+        scale: 10,    // kualitas tinggi, tetap square
     });
 };
 
@@ -162,7 +163,9 @@ const cetakBelakang = async () => {
                 <div ref="cardBackRef"
                     class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center flex items-center justify-center mt-6"
                     :style="{ backgroundImage: `url(${cardBg2})` }">
-                    <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" class="w-20 h-20 bg-white p-1 rounded" />
+                    <!-- ✅ QR Code tetap square -->
+                    <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code"
+                        class="w-28 h-28 bg-white p-1 rounded object-contain" />
                 </div>
 
                 <!-- Tombol Export -->
