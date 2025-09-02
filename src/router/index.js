@@ -1,4 +1,5 @@
 import ContactPage from "@/page/ContactPage.vue";
+import EcardPage from "@/page/EcardPage.vue";
 import GalleryPage from "@/page/GalleryPage.vue";
 import HomePage from "@/page/HomePage.vue";
 import KurikulumPage from "@/page/KurikulumPage.vue";
@@ -19,6 +20,7 @@ const router = createRouter({
     { path: "/produk", component: ProductPage },
     { path: "/gallery", component: GalleryPage },
     { path: "/news", component: NewsPage },
+    { path: "/ecard", component: EcardPage },
   ],
 });
 
