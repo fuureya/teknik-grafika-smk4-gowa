@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from "vue";
+import cardBg from "@/assets/card.png"; // background image
+import cardBg2 from "@/assets/card2.png"; // background image
 
 const form = ref({
     nrg: "",
@@ -11,8 +13,27 @@ const form = ref({
     photo: null,
 });
 
+const photoUrl = ref(null);
+
 const handlePhotoUpload = (e) => {
-    form.value.photo = e.target.files[0];
+    const file = e.target.files[0];
+    if (file) {
+        form.value.photo = file;
+        photoUrl.value = URL.createObjectURL(file); // ✅ generate preview URL
+    }
+};
+
+const resetForm = () => {
+    form.value = {
+        nrg: "",
+        nama: "",
+        peserta: "",
+        sertifikat: "",
+        tahun: "",
+        mapel: "",
+        photo: null,
+    };
+    photoUrl.value = null; // reset preview
 };
 </script>
 
@@ -25,7 +46,8 @@ const handlePhotoUpload = (e) => {
             </h1>
             <p class="text-gray-600 text-sm md:text-base mb-4">
                 Pastikan NRG masih aktif dan terdaftar di Pusat Data dan Informasi
-                Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi sebelum mencetak kartu.
+                Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi sebelum mencetak
+                kartu.
             </p>
             <p class="text-gray-600 text-sm md:text-base mb-2">
                 Berikut yang perlu disiapkan sebelum mulai mengisi Formulir:
@@ -64,11 +86,15 @@ const handlePhotoUpload = (e) => {
                     <input v-model="form.mapel" type="text" placeholder="Mapel / Bidang Tugas"
                         class="w-full border rounded p-2" />
                     <input type="file" @change="handlePhotoUpload" accept="image/*" class="w-full" />
-                    <p class="text-xs text-red-500">File Pas Photo | 2x3 | Format (.jpg/.jpeg/.png)</p>
+                    <p class="text-xs text-red-500">
+                        File Pas Photo | 2x3 | Format (.jpg/.jpeg/.png)
+                    </p>
                 </div>
 
                 <div class="mt-6">
-                    <button class="px-4 py-2 bg-gray-600 text-white rounded">Reset</button>
+                    <button @click="resetForm" class="px-4 py-2 bg-gray-600 text-white rounded">
+                        Reset
+                    </button>
                 </div>
             </div>
 
@@ -78,33 +104,56 @@ const handlePhotoUpload = (e) => {
                     Live Preview Kartu NRG
                 </h2>
                 <div class="space-y-4">
-                    <div class="border rounded-lg overflow-hidden">
-                        <div class="bg-gray-100 p-4 text-center text-sm text-gray-600">
-                            KARTU SERTIFIKASI GURU <br /> No Sertifikat:
-                            <span class="font-semibold">{{ form.sertifikat }}</span>
-                        </div>
-                        <div class="flex p-4 gap-4">
-                            <div class="w-24 h-28 bg-gray-200 flex items-center justify-center overflow-hidden rounded">
-                                <img v-if="form.photo" :src="URL.createObjectURL(form.photo)"
-                                    class="w-full h-full object-cover" />
-                                <span v-else class="text-gray-400 text-xs">Foto</span>
-                            </div>
-                            <div class="text-sm text-gray-700 space-y-1">
-                                <p><strong>NRG:</strong> {{ form.nrg }}</p>
-                                <p><strong>Nama:</strong> {{ form.nama }}</p>
-                                <p><strong>No. Peserta:</strong> {{ form.peserta }}</p>
-                                <p><strong>Tahun Lulus:</strong> {{ form.tahun }}</p>
-                                <p><strong>Mapel:</strong> {{ form.mapel }}</p>
+                    <!-- Card with background -->
+                    <div class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
+                        :style="{ backgroundImage: `url(${cardBg})` }">
+                        <!-- Overlay -->
+                        <div class="absolute inset-0 flex flex-col p-4 text-sm text-gray-900">
+                            <div class="flex gap-4">
+                                <!-- Photo -->
+                                <div
+                                    class="w-24 h-28 bg-gray-200 flex items-center justify-center overflow-hidden rounded shadow">
+                                    <img v-if="photoUrl" :src="photoUrl" class="w-full h-full object-cover" />
+                                    <span v-else class="text-gray-400 text-xs">Foto</span>
+                                </div>
+
+                                <!-- Text Info -->
+                                <div class="text-sm space-y-1">
+                                    <p><strong>NRG:</strong> {{ form.nrg }}</p>
+                                    <p><strong>Nama:</strong> {{ form.nama }}</p>
+                                    <p><strong>No. Peserta:</strong> {{ form.peserta }}</p>
+                                    <p><strong>No. Sertifikat:</strong> {{ form.sertifikat }}</p>
+                                    <p><strong>Tahun Lulus:</strong> {{ form.tahun }}</p>
+                                    <p><strong>Mapel:</strong> {{ form.mapel }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+
+                </div>
+                <div class="space-y-4 mt-5">
+                    <!-- Card with background -->
+                    <div class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
+                        :style="{ backgroundImage: `url(${cardBg2})` }">
+                    </div>
+
+                    <!-- Action Buttons -->
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 bg-green-600 text-white rounded">Whatsapp</button>
-                        <button class="px-4 py-2 bg-blue-600 text-white rounded">Siplah</button>
-                        <button class="px-4 py-2 bg-gray-800 text-white rounded">Cetak Kartu</button>
+                        <button class="px-4 py-2 bg-green-600 text-white rounded">
+                            Whatsapp
+                        </button>
+                        <button class="px-4 py-2 bg-blue-600 text-white rounded">
+                            Siplah
+                        </button>
+                        <button class="px-4 py-2 bg-gray-800 text-white rounded">
+                            Cetak Kartu
+                        </button>
                     </div>
                 </div>
             </div>
+
+
         </div>
     </main>
 </template>

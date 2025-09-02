@@ -78,8 +78,9 @@ const selected = ref(null); // "nrg" | "nisn" | "nupt"
     <section class="py-12 px-4 md:px-16">
         <div class="max-w-6xl mx-auto">
             <NrgPage v-if="selected === 'nrg'" />
-            <!-- <NisnPage v-if="selected === 'nisn'" /> -->
-            <!-- <NuptPage v-if="selected === 'nupt'" /> -->
+            <NrgPage v-if="selected === 'nisn'" />
+            <NrgPage v-if="selected === 'nupt'" />
+
         </div>
     </section>
 
