@@ -1,9 +1,9 @@
 <script setup>
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import cardBg from "@/assets/card.png"; // background depan
 import cardBg2 from "@/assets/card2.png"; // background belakang
-import html2canvas from "html2canvas"; // install: npm install html2canvas
-import QRCode from "qrcode"; // install: npm install qrcode
+import html2canvas from "html2canvas"; // npm install html2canvas
+import QRCode from "qrcode"; // npm install qrcode
 
 const form = ref({
     nrg: "",
@@ -18,8 +18,8 @@ const form = ref({
 const photoUrl = ref(null);
 const qrCodeUrl = ref(null);
 
-const cardFrontRef = ref(null); // untuk cetak depan
-const cardBackRef = ref(null); // untuk cetak belakang
+const cardFrontRef = ref(null);
+const cardBackRef = ref(null);
 
 const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -43,23 +43,35 @@ const resetForm = () => {
     qrCodeUrl.value = null;
 };
 
-// 📦 generate QR code from form data
+// 📦 Generate QR code dari data form
 const generateQRCode = async () => {
-    const qrData = JSON.stringify(form.value, null, 2); // encode all form data
+    const qrData = JSON.stringify(form.value, null, 2);
     qrCodeUrl.value = await QRCode.toDataURL(qrData, {
-        width: 128,
+        width: 200,
         margin: 2,
     });
 };
 
-// 📸 Export as JPG
+// 📸 Export card dengan ukuran fix 1011x638
 const exportCard = async (refElement, filename) => {
     if (!refElement.value) return;
+
     const canvas = await html2canvas(refElement.value, {
         useCORS: true,
         backgroundColor: null,
+        scale: 2, // ambil resolusi tinggi dulu
     });
-    const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+    // Buat canvas baru dengan ukuran fix
+    const fixedCanvas = document.createElement("canvas");
+    fixedCanvas.width = 1011;
+    fixedCanvas.height = 638;
+    const ctx = fixedCanvas.getContext("2d");
+
+    // Resize hasil ke ukuran fix
+    ctx.drawImage(canvas, 0, 0, 1011, 638);
+
+    const imgData = fixedCanvas.toDataURL("image/jpeg", 1.0);
 
     const link = document.createElement("a");
     link.href = imgData;
@@ -68,53 +80,23 @@ const exportCard = async (refElement, filename) => {
 };
 
 const cetakDepan = () => {
-    exportCard(
-        cardFrontRef,
-        `kartu_nrg_depan_${form.value.nama || "user"}.jpg`
-    );
+    exportCard(cardFrontRef, `kartu_nrg_depan_${form.value.nama || "user"}.jpg`);
 };
 
 const cetakBelakang = async () => {
-    await generateQRCode(); // generate QR first
-    // wait a tick for DOM update
-    setTimeout(() => {
-        exportCard(
-            cardBackRef,
-            `kartu_nrg_belakang_${form.value.nama || "user"}.jpg`
-        );
-    }, 300);
+    await generateQRCode();
+    await nextTick(); // tunggu QR code render
+    exportCard(
+        cardBackRef,
+        `kartu_nrg_belakang_${form.value.nama || "user"}.jpg`
+    );
 };
 </script>
 
 <template>
     <main class="bg-gray-50 min-h-screen px-4 md:px-16 py-12">
-        <!-- Title + Instructions -->
-        <div class="max-w-4xl mx-auto text-center mb-10">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
-                Selamat Datang Di e-Kartu Cetak NRG
-            </h1>
-            <p class="text-gray-600 text-sm md:text-base mb-4">
-                Pastikan NRG masih aktif dan terdaftar di Pusat Data dan Informasi
-                Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi sebelum mencetak
-                kartu.
-            </p>
-            <p class="text-gray-600 text-sm md:text-base mb-2">
-                Berikut yang perlu disiapkan sebelum mulai mengisi Formulir:
-            </p>
-            <ol class="text-left text-gray-700 text-sm md:text-base list-decimal list-inside space-y-1">
-                <li>NRG</li>
-                <li>Nama Lengkap</li>
-                <li>Nomor Peserta</li>
-                <li>Nomor Sertifikat</li>
-                <li>Tahun Lulus</li>
-                <li>Mapel / Bidang Tugas</li>
-                <li>File Foto 2x3 (PNG/JPG/JPEG)</li>
-            </ol>
-        </div>
-
-        <!-- Form & Preview -->
+        <!-- Form -->
         <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
-            <!-- Form -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="bg-blue-600 text-white px-4 py-2 rounded-t-lg -mx-6 -mt-6 mb-6 text-lg font-semibold">
                     Form Isian
@@ -153,53 +135,44 @@ const cetakBelakang = async () => {
                     Live Preview Kartu NRG
                 </h2>
 
-                <div class="space-y-4">
-                    <!-- Card Depan -->
-                    <div ref="cardFrontRef"
-                        class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
-                        :style="{ backgroundImage: `url(${cardBg})` }">
-                        <!-- Overlay -->
-                        <div class="absolute inset-0 flex flex-col p-4 text-sm text-gray-900">
-                            <div class="flex gap-4">
-                                <!-- Photo -->
-                                <div
-                                    class="w-24 h-28 bg-gray-200 flex items-center justify-center overflow-hidden rounded shadow">
-                                    <img v-if="photoUrl" :src="photoUrl" class="w-full h-full object-cover" />
-                                    <span v-else class="text-gray-400 text-xs">Foto</span>
-                                </div>
-
-                                <!-- Text Info -->
-                                <div class="text-sm space-y-1">
-                                    <p><strong>NRG:</strong> {{ form.nrg }}</p>
-                                    <p><strong>Nama:</strong> {{ form.nama }}</p>
-                                    <p><strong>No. Peserta:</strong> {{ form.peserta }}</p>
-                                    <p><strong>No. Sertifikat:</strong> {{ form.sertifikat }}</p>
-                                    <p><strong>Tahun Lulus:</strong> {{ form.tahun }}</p>
-                                    <p><strong>Mapel:</strong> {{ form.mapel }}</p>
-                                </div>
+                <!-- Depan -->
+                <div ref="cardFrontRef"
+                    class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
+                    :style="{ backgroundImage: `url(${cardBg})` }">
+                    <div class="absolute inset-0 flex flex-col p-4 text-sm text-gray-900">
+                        <div class="flex gap-4">
+                            <div
+                                class="w-24 h-28 bg-gray-200 flex items-center justify-center overflow-hidden rounded shadow">
+                                <img v-if="photoUrl" :src="photoUrl" class="w-full h-full object-cover" />
+                                <span v-else class="text-gray-400 text-xs">Foto</span>
+                            </div>
+                            <div class="text-sm space-y-1">
+                                <p><strong>NRG:</strong> {{ form.nrg }}</p>
+                                <p><strong>Nama:</strong> {{ form.nama }}</p>
+                                <p><strong>No. Peserta:</strong> {{ form.peserta }}</p>
+                                <p><strong>No. Sertifikat:</strong> {{ form.sertifikat }}</p>
+                                <p><strong>Tahun Lulus:</strong> {{ form.tahun }}</p>
+                                <p><strong>Mapel:</strong> {{ form.mapel }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card Belakang -->
-                <div class="space-y-4 mt-5">
-                    <div ref="cardBackRef"
-                        class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center flex items-center justify-center"
-                        :style="{ backgroundImage: `url(${cardBg2})` }">
-                        <!-- QR Code in center -->
-                        <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" class="w-28 h-28 bg-white p-2 rounded" />
-                    </div>
+                <!-- Belakang -->
+                <div ref="cardBackRef"
+                    class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center flex items-center justify-center mt-6"
+                    :style="{ backgroundImage: `url(${cardBg2})` }">
+                    <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" class="w-20 h-20 bg-white p-1 rounded" />
+                </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex gap-2">
-                        <button @click="cetakDepan" class="px-4 py-2 bg-green-600 text-white rounded">
-                            Cetak Depan
-                        </button>
-                        <button @click="cetakBelakang" class="px-4 py-2 bg-blue-600 text-white rounded">
-                            Cetak Belakang
-                        </button>
-                    </div>
+                <!-- Tombol Export -->
+                <div class="flex gap-2 mt-6">
+                    <button @click="cetakDepan" class="px-4 py-2 bg-green-600 text-white rounded">
+                        Cetak Depan
+                    </button>
+                    <button @click="cetakBelakang" class="px-4 py-2 bg-blue-600 text-white rounded">
+                        Cetak Belakang
+                    </button>
                 </div>
             </div>
         </div>
