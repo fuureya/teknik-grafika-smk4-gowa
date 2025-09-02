@@ -3,6 +3,7 @@ import { ref } from "vue";
 import cardBg from "@/assets/card.png"; // background depan
 import cardBg2 from "@/assets/card2.png"; // background belakang
 import html2canvas from "html2canvas"; // install: npm install html2canvas
+import QRCode from "qrcode"; // install: npm install qrcode
 
 const form = ref({
     nrg: "",
@@ -15,6 +16,8 @@ const form = ref({
 });
 
 const photoUrl = ref(null);
+const qrCodeUrl = ref(null);
+
 const cardFrontRef = ref(null); // untuk cetak depan
 const cardBackRef = ref(null); // untuk cetak belakang
 
@@ -37,6 +40,16 @@ const resetForm = () => {
         photo: null,
     };
     photoUrl.value = null;
+    qrCodeUrl.value = null;
+};
+
+// 📦 generate QR code from form data
+const generateQRCode = async () => {
+    const qrData = JSON.stringify(form.value, null, 2); // encode all form data
+    qrCodeUrl.value = await QRCode.toDataURL(qrData, {
+        width: 128,
+        margin: 2,
+    });
 };
 
 // 📸 Export as JPG
@@ -61,11 +74,15 @@ const cetakDepan = () => {
     );
 };
 
-const cetakBelakang = () => {
-    exportCard(
-        cardBackRef,
-        `kartu_nrg_belakang_${form.value.nama || "user"}.jpg`
-    );
+const cetakBelakang = async () => {
+    await generateQRCode(); // generate QR first
+    // wait a tick for DOM update
+    setTimeout(() => {
+        exportCard(
+            cardBackRef,
+            `kartu_nrg_belakang_${form.value.nama || "user"}.jpg`
+        );
+    }, 300);
 };
 </script>
 
@@ -168,8 +185,11 @@ const cetakBelakang = () => {
                 <!-- Card Belakang -->
                 <div class="space-y-4 mt-5">
                     <div ref="cardBackRef"
-                        class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center"
-                        :style="{ backgroundImage: `url(${cardBg2})` }"></div>
+                        class="relative border rounded-lg overflow-hidden w-full h-64 bg-cover bg-center flex items-center justify-center"
+                        :style="{ backgroundImage: `url(${cardBg2})` }">
+                        <!-- QR Code in center -->
+                        <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" class="w-28 h-28 bg-white p-2 rounded" />
+                    </div>
 
                     <!-- Action Buttons -->
                     <div class="flex gap-2">
