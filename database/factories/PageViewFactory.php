@@ -16,8 +16,16 @@ class PageViewFactory extends Factory
      */
     public function definition(): array
     {
+        $paths = ['/', '/contact', '/visi-misi', '/kurikulum', '/struktur', '/produk', '/gallery', '/news', '/ecard'];
+
         return [
-            //
+            'path' => $this->faker->randomElement($paths),
+            'session_id' => $this->faker->uuid,
+            'user_id' => null,
+            'ip_address' => $this->faker->ipv4,
+            'user_agent' => $this->faker->userAgent,
+            'created_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
+            'updated_at' => now(),
         ];
     }
 }
