@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\NewsController as PublicNewsController;
 use App\Http\Controllers\GalleryController as PublicGalleryController;
 use App\Http\Controllers\ProductController as PublicProductController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return Inertia::render('HomePage');
@@ -49,9 +50,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Authenticated Routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('DashboardPage');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('admin')->group(function () {
         Route::resource('products', ProductController::class)->names([
