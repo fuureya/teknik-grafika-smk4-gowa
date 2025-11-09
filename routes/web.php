@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\AccessLogController;
 use App\Http\Controllers\NewsController as PublicNewsController;
 use App\Http\Controllers\GalleryController as PublicGalleryController;
 use App\Http\Controllers\ProductController as PublicProductController;
@@ -55,6 +56,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('admin')->group(function () {
+        Route::get('/access-logs', [AccessLogController::class, 'index'])->name('admin.access-logs.index');
+
         Route::resource('products', ProductController::class)->names([
             'index' => 'admin.products.index',
             'create' => 'admin.products.create',

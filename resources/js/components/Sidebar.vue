@@ -62,6 +62,15 @@
                         </div>
                     </Link>
                 </li>
+                <li>
+                    <Link href="/admin/access-logs" class="flex items-center p-2 text-base font-normal rounded-lg hover:bg-blue-100 text-gray-700 border-b border-gray-200 hover:border-dashed hover:border-blue-500">
+                        <span class="text-xl">🔍</span>
+                        <div v-if="props.isOpen" class="ml-3">
+                            <span>Log Akses</span>
+                            <span class="block text-xs text-gray-500">Lihat log pengunjung</span>
+                        </div>
+                    </Link>
+                </li>
                  <li>
                     <Link href="/logout" method="post" as="button" type="button" class="w-full flex items-center p-2 text-base font-normal rounded-lg hover:bg-red-100 text-red-700 border-b border-gray-200 hover:border-dashed hover:border-red-500">
                         <span class="text-xl">🚪</span>
