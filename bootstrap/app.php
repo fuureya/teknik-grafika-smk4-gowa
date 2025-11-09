@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
+
+        $middleware->alias([
+            'log.page.view' => \App\Http\Middleware\LogPageView::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

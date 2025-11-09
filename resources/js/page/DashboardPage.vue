@@ -2,7 +2,37 @@
     <AuthenticatedLayout>
         <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard Overview</h1>
         
-        <!-- Summary Cards -->
+        <!-- Visitor Stats -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Visitor Summary</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-gray-700">Hari Ini</h3>
+                <p class="text-4xl font-bold text-indigo-600 mt-2">{{ visitorStats.today }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-gray-700">3 Hari Terakhir</h3>
+                <p class="text-4xl font-bold text-indigo-600 mt-2">{{ visitorStats.last3days }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-gray-700">Seminggu</h3>
+                <p class="text-4xl font-bold text-indigo-600 mt-2">{{ visitorStats.lastWeek }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-gray-700">Sebulan</h3>
+                <p class="text-4xl font-bold text-indigo-600 mt-2">{{ visitorStats.lastMonth }}</p>
+            </div>
+        </div>
+
+        <!-- Page Views Chart -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Page Views (Last 30 Days)</h2>
+        <div class="bg-white p-6 rounded-lg shadow-md mb-10">
+            <div class="h-96">
+                <LineChart :chart-data="chartData" />
+            </div>
+        </div>
+
+        <!-- Content Summary Cards -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Content Summary</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <!-- Product Count Card -->
             <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between transition-transform transform hover:scale-105">
@@ -106,12 +136,32 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Link } from '@inertiajs/vue3';
+import LineChart from '@/components/LineChart.vue';
+import { computed } from 'vue';
 
 const props = defineProps({
     productCount: Number,
     newsCount: Number,
     galleryCount: Number,
     userCount: Number,
+    visitorStats: Object,
+    pageViewsChart: Array,
+});
+
+const chartData = computed(() => {
+    return {
+        labels: props.pageViewsChart.map(item => item.date),
+        datasets: [
+            {
+                label: 'Page Views',
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 2,
+                data: props.pageViewsChart.map(item => item.views),
+                tension: 0.4,
+            },
+        ],
+    };
 });
 </script>
 

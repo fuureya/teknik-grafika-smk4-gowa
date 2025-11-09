@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('page_views', function (Blueprint $table) {
             $table->id();
+            $table->string('path');
+            $table->string('session_id');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
             $table->timestamps();
+
+            $table->unique(['session_id', 'path']);
         });
     }
 

@@ -12,35 +12,37 @@ use App\Http\Controllers\GalleryController as PublicGalleryController;
 use App\Http\Controllers\ProductController as PublicProductController;
 use App\Http\Controllers\DashboardController;
 
-Route::get('/', function () {
-    return Inertia::render('HomePage');
-});
+Route::middleware(['log.page.view'])->group(function () {
+    Route::get('/', function () {
+        return Inertia::render('HomePage');
+    });
 
-Route::get('/contact', function () {
-    return Inertia::render('ContactPage');
-});
+    Route::get('/contact', function () {
+        return Inertia::render('ContactPage');
+    });
 
-Route::get('/visi-misi', function () {
-    return Inertia::render('VisiMisiPage');
-});
+    Route::get('/visi-misi', function () {
+        return Inertia::render('VisiMisiPage');
+    });
 
-Route::get('/kurikulum', function () {
-    return Inertia::render('KurikulumPage');
-});
+    Route::get('/kurikulum', function () {
+        return Inertia::render('KurikulumPage');
+    });
 
-Route::get('/struktur', function () {
-    return Inertia::render('StrukturPage');
-});
+    Route::get('/struktur', function () {
+        return Inertia::render('StrukturPage');
+    });
 
-Route::get('/produk', [PublicProductController::class, 'index']);
+    Route::get('/produk', [PublicProductController::class, 'index']);
 
-Route::get('/gallery', [PublicGalleryController::class, 'index']);
+    Route::get('/gallery', [PublicGalleryController::class, 'index']);
 
-Route::get('/news', [PublicNewsController::class, 'index']);
-Route::get('/news/{news}', [PublicNewsController::class, 'show'])->name('news.show');
+    Route::get('/news', [PublicNewsController::class, 'index']);
+    Route::get('/news/{news}', [PublicNewsController::class, 'show'])->name('news.show');
 
-Route::get('/ecard', function () {
-    return Inertia::render('EcardPage');
+    Route::get('/ecard', function () {
+        return Inertia::render('EcardPage');
+    });
 });
 
 // Login Routes
