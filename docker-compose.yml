@@ -1,0 +1,65 @@
+services:
+  grafika_school:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: grafika_school
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html
+    networks:
+      - app-network
+
+  db_grafika:
+    image: mariadb:10.5
+    container_name: db_grafika
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: grafika_school
+      MYSQL_USER: root
+      MYSQL_PASSWORD: kuinginkautahu
+    volumes:
+      - grafika_db_volume:/var/lib/mysql
+    networks:
+      - app-network
+    ports:
+      - "3306:3306"
+
+  pma-grafika:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma-grafika
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db_grafika
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      - db_grafika
+    networks:
+      - app-network
+
+  caddy:
+    image: caddy:2.8
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy:/etc/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+
+volumes:
+  grafika_db_volume:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,3 @@
+grafika.com {
+reverse_proxy grafika_school
+}
