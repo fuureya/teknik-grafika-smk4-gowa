@@ -19,8 +19,10 @@
         "@inertiajs/vue3": "^2.2.15",
         "@vitejs/plugin-vue": "^6.0.1",
         "chart.js": "^4.5.1",
+        "html2canvas": "^1.4.1",
         "jquery": "^3.7.1",
         "lodash": "^4.17.21",
+        "qrcode": "^1.5.4",
         "summernote": "^0.9.1",
         "sweetalert2": "^11.26.3",
         "vue-chartjs": "^5.3.3"

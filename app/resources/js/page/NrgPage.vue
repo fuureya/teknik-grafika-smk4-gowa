@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, computed } from "vue";
+import { ref, nextTick, computed, watchEffect } from "vue";
 import cardBg from "@/assets/card.png";
 import cardBg2 from "@/assets/card2.png";
 import html2canvas from "html2canvas";
@@ -18,6 +18,7 @@ const form = ref({
 const errors = ref({});
 const photoUrl = ref(null);
 const qrCodeUrl = ref(null);
+const isLoading = ref(false); // Loading state
 
 const cardFrontRef = ref(null);
 const cardBackRef = ref(null);
@@ -68,11 +69,23 @@ const validateForm = () => {
 
 const isFormValid = computed(() => validateForm());
 
-// QR Code
-const generateQRCode = async () => {
-    const qrData = JSON.stringify(form.value, null, 2);
-    qrCodeUrl.value = await QRCode.toDataURL(qrData, { width: 300, margin: 2, scale: 10 });
-};
+// Auto-generate QR Code when form is valid
+watchEffect(async () => {
+    if (isFormValid.value) {
+        const qrData = JSON.stringify({
+            nrg: form.value.nrg,
+            nama: form.value.nama,
+            peserta: form.value.peserta,
+            sertifikat: form.value.sertifikat,
+            tahun: form.value.tahun,
+            mapel: form.value.mapel,
+        }, null, 2);
+        qrCodeUrl.value = await QRCode.toDataURL(qrData, { width: 300, margin: 2, scale: 10 });
+    } else {
+        qrCodeUrl.value = null;
+    }
+});
+
 
 // Export kartu
 const exportCard = async (refElement, filename) => {
@@ -92,8 +105,37 @@ const exportCard = async (refElement, filename) => {
     link.click();
 };
 
-const cetakDepan = () => { if (!validateForm()) return; exportCard(cardFrontRef, `kartu_nrg_depan_${form.value.nama || "user"}.jpg`); };
-const cetakBelakang = async () => { if (!validateForm()) return; await generateQRCode(); await nextTick(); exportCard(cardBackRef, `kartu_nrg_belakang_${form.value.nama || "user"}.jpg`); };
+const cetakDepan = async () => {
+    if (!isFormValid.value) return;
+    isLoading.value = true;
+    try {
+        await exportCard(cardFrontRef, `kartu_nrg_depan_${form.value.nama || "user"}.jpg`);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const cetakBelakang = async () => {
+    if (!isFormValid.value) return;
+    isLoading.value = true;
+    try {
+        // QR code is already generated, just wait for it to be loaded before printing
+        await new Promise(resolve => {
+            if (!qrCodeUrl.value) { // Should not happen if form is valid, but as a safeguard
+                resolve();
+                return;
+            }
+            const img = new Image();
+            img.onload = resolve;
+            img.onerror = resolve;
+            img.src = qrCodeUrl.value;
+        });
+
+        await exportCard(cardBackRef, `kartu_nrg_belakang_${form.value.nama || "user"}.jpg`);
+    } finally {
+        isLoading.value = false;
+    }
+};
 </script>
 
 <template>
@@ -145,8 +187,8 @@ const cetakBelakang = async () => { if (!validateForm()) return; await generateQ
                     </div>
                 </div>
                 <div class="mt-6">
-                    <button @click="resetForm"
-                        class="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-700 text-white rounded shadow hover:scale-105 transition">Reset</button>
+                    <button @click="resetForm" :disabled="isLoading"
+                        class="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-700 text-white rounded shadow hover:scale-105 transition disabled:opacity-50 disabled:cursor-wait">Reset</button>
                 </div>
             </div>
 
@@ -193,15 +235,17 @@ const cetakBelakang = async () => { if (!validateForm()) return; await generateQ
 
                 <!-- Tombol Export -->
                 <div class="flex gap-2 mt-6">
-                    <button @click="cetakDepan" :disabled="!isFormValid"
-                        class="px-4 py-2 rounded text-white font-semibold transition transform active:scale-95 disabled:cursor-not-allowed"
+                    <button @click="cetakDepan" :disabled="!isFormValid || isLoading"
+                        class="px-4 py-2 rounded text-white font-semibold transition transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 w-36 text-center"
                         :class="isFormValid ? 'bg-gradient-to-r from-green-500 to-green-700 hover:shadow-lg' : 'bg-gray-400'">
-                        Cetak Depan
+                        <span v-if="isLoading">Mencetak...</span>
+                        <span v-else>Cetak Depan</span>
                     </button>
-                    <button @click="cetakBelakang" :disabled="!isFormValid"
-                        class="px-4 py-2 rounded text-white font-semibold transition transform active:scale-95 disabled:cursor-not-allowed"
+                    <button @click="cetakBelakang" :disabled="!isFormValid || isLoading"
+                        class="px-4 py-2 rounded text-white font-semibold transition transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 w-36 text-center"
                         :class="isFormValid ? 'bg-gradient-to-r from-blue-500 to-blue-700 hover:shadow-lg' : 'bg-gray-400'">
-                        Cetak Belakang
+                        <span v-if="isLoading">Mencetak...</span>
+                        <span v-else>Cetak Belakang</span>
                     </button>
                 </div>
             </div>
